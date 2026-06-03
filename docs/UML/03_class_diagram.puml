@@ -1,0 +1,138 @@
+@startuml
+title Class Diagram: Core Domain Model
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam roundcorner 10
+skinparam classAttributeIconSize 0
+
+class User {
+  +userId: UUID
+  +name: String
+  +email: String
+  +passwordHash: String
+  +role: String
+}
+
+class UserProfile {
+  +profileId: UUID
+  +age: int
+  +gender: String
+  +heightCm: double
+  +weightKg: double
+  +activityLevel: String
+  +primaryGoal: String
+}
+
+class Exercise {
+  +exerciseId: UUID
+  +name: String
+  +category: String
+  +muscleGroup: String
+  +equipment: String
+  +intensityLevel: String
+}
+
+class WorkoutSession {
+  +sessionId: UUID
+  +workoutDate: Date
+  +category: String
+  +durationMin: int
+  +notes: String
+}
+
+class WorkoutEntry {
+  +entryId: UUID
+  +sets: int
+  +reps: int
+  +weightKg: double
+  +restSec: int
+  +volume(): double
+}
+
+class FoodItem {
+  +foodItemId: UUID
+  +name: String
+  +servingSize: String
+  +calories: double
+  +protein: double
+  +carbohydrates: double
+  +fat: double
+}
+
+class MealLog {
+  +mealLogId: UUID
+  +mealType: String
+  +quantity: double
+  +mealTime: DateTime
+  +totalCalories(): double
+}
+
+class BodyRecord {
+  +bodyRecordId: UUID
+  +recordDate: Date
+  +weightKg: double
+  +note: String
+}
+
+class Goal {
+  +goalId: UUID
+  +goalType: String
+  +targetMetric: String
+  +targetValue: double
+  +deadline: Date
+  +priority: String
+  +status: String
+}
+
+class AnalyticsSnapshot {
+  +snapshotId: UUID
+  +periodType: String
+  +startDate: Date
+  +endDate: Date
+  +workoutConsistency: double
+  +calorieBalance: double
+  +goalAdherence: double
+}
+
+class AIRecommendation {
+  +recommendationId: UUID
+  +type: String
+  +promptContext: Text
+  +content: Text
+  +createdAt: DateTime
+}
+
+class RecommendationFeedback {
+  +feedbackId: UUID
+  +rating: String
+  +suitability: String
+  +comment: String
+}
+
+class ProgressReport {
+  +reportId: UUID
+  +periodType: String
+  +generatedAt: DateTime
+  +summary: Text
+  +fileUrl: String
+}
+
+User "1" -- "1" UserProfile
+User "1" -- "*" WorkoutSession
+WorkoutSession "1" -- "*" WorkoutEntry
+Exercise "1" -- "*" WorkoutEntry
+User "1" -- "*" MealLog
+FoodItem "1" -- "*" MealLog
+User "1" -- "*" BodyRecord
+User "1" -- "*" Goal
+User "1" -- "*" AnalyticsSnapshot
+User "1" -- "*" AIRecommendation
+AIRecommendation "1" -- "0..*" RecommendationFeedback
+User "1" -- "*" ProgressReport
+AnalyticsSnapshot ..> WorkoutSession : derived from
+AnalyticsSnapshot ..> MealLog : derived from
+AnalyticsSnapshot ..> BodyRecord : derived from
+AnalyticsSnapshot ..> Goal : derived from
+ProgressReport ..> AnalyticsSnapshot : uses
+@enduml

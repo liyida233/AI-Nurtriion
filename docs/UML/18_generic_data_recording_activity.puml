@@ -1,0 +1,37 @@
+@startuml
+title Activity Diagram: Generic User Data Recording Workflow
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam roundcorner 12
+
+start
+:User selects data type to record;
+
+if (Workout?) then (Yes)
+  :Enter exercise, sets, reps,\nweight, duration, and rest time;
+  :Validate workout fields;
+  :Save workout session and entries;
+  :Calculate workout volume,\nconsistency, and overload indicators;
+elseif (Meal / Nutrition?) then (Yes)
+  :Enter food item, quantity,\nmeal type, and meal time;
+  :Validate food and quantity;
+  :Save meal log;
+  :Calculate calories and macro totals;
+elseif (Body Record?) then (Yes)
+  :Enter body weight and record date;
+  :Validate body record;
+  :Save body record;
+  :Update moving average and trend;
+else (Goal?)
+  :Enter goal type, target,\ndeadline, and priority;
+  :Validate SMART goal;
+  :Check feasibility;
+  :Save goal and milestones;
+endif
+
+:Update analytics snapshot;
+:Invalidate dashboard cache;
+:Return updated summary to dashboard;
+stop
+@enduml

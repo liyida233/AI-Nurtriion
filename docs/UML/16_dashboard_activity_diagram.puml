@@ -1,0 +1,29 @@
+@startuml
+title Activity Diagram: Dashboard Data Aggregation Workflow
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam roundcorner 12
+
+start
+:User opens dashboard;
+:Backend receives dashboard request;
+:Check Redis for cached summary;
+
+if (Cached dashboard summary available?) then (Yes)
+  :Return cached dashboard indicators;
+else (No)
+  :Retrieve profile, workouts,\nmeal logs, body records, and goals;
+  :Aggregate workout frequency\nand training volume;
+  :Aggregate calorie intake,\nmacro ratio, and nutrition gaps;
+  :Calculate BMR, TDEE,\nand calorie balance;
+  :Calculate body weight moving average\nand progress trend;
+  :Calculate goal adherence\nand milestone status;
+  :Compare current week/month\nagainst previous period;
+  :Store dashboard summary in Redis;
+endif
+
+:Render dashboard cards and charts;
+:Display key insights to user;
+stop
+@enduml

@@ -1,0 +1,45 @@
+@startuml
+title Sequence Diagram: User Profile and Health Data Update
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam maxMessageSize 90
+skinparam sequence {
+  ArrowColor #333333
+  ActorBorderColor #333333
+  LifeLineBorderColor #777777
+  ParticipantBorderColor #333333
+  ParticipantBackgroundColor #F8F8F8
+}
+
+actor User
+participant "Web Dashboard" as Frontend
+participant "Profile Controller\n(Backend API)" as ProfileAPI
+participant "Profile Service" as ProfileService
+participant "Analytics Service" as Analytics
+database "MySQL Database" as DB
+collections "Redis Cache" as Redis
+
+User -> Frontend: Edit health profile
+Frontend -> ProfileAPI: PUT /api/profile
+ProfileAPI -> ProfileService: Validate profile fields
+ProfileService -> ProfileService: Check age, height, weight,\nactivity level, and goal constraints
+
+alt Valid profile data
+  ProfileService -> DB: Update user_profile
+  DB --> ProfileService: Update success
+  ProfileService -> Analytics: Recalculate BMR/TDEE baseline
+  Analytics --> ProfileService: Updated baseline indicators
+  ProfileService -> Redis: Invalidate dashboard and analytics cache
+  Redis --> ProfileService: Cache invalidated
+  ProfileService --> ProfileAPI: Updated profile response
+  ProfileAPI --> Frontend: 200 OK
+  Frontend --> User: Show updated profile and analytics readiness
+else Invalid profile data
+  ProfileService --> ProfileAPI: Validation error
+  ProfileAPI --> Frontend: 400 Bad Request
+  Frontend --> User: Show correction message
+end
+
+@enduml

@@ -1,0 +1,53 @@
+@startuml
+title Sequence Diagram: Workout Logging and Performance Analysis
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam maxMessageSize 90
+skinparam sequence {
+  ArrowColor #333333
+  ActorBorderColor #333333
+  LifeLineBorderColor #777777
+  ParticipantBorderColor #333333
+  ParticipantBackgroundColor #F8F8F8
+}
+
+actor User
+participant "Web Dashboard" as Frontend
+participant "Workout Controller\n(Backend API)" as WorkoutAPI
+participant "Workout Service" as WorkoutService
+participant "Workout Analysis Service" as Analysis
+database "MySQL Database" as DB
+collections "Redis Cache" as Redis
+
+User -> Frontend: Add workout session and exercises
+Frontend -> WorkoutAPI: POST /api/workouts
+WorkoutAPI -> WorkoutService: Validate workout payload
+WorkoutService -> DB: Verify exercise IDs and user ownership
+DB --> WorkoutService: Exercise metadata
+
+alt Valid workout data
+  WorkoutService -> DB: Save workout_session
+  WorkoutService -> DB: Save workout_entries
+  DB --> WorkoutService: Save success
+
+  WorkoutService -> Analysis: Analyze workout session
+  Analysis -> Analysis: Calculate training volume\nsets x reps x weight
+  Analysis -> Analysis: Update muscle-group distribution
+  Analysis -> Analysis: Compare with previous sessions\nfor progressive overload
+  Analysis -> Analysis: Update workout consistency score
+  Analysis --> WorkoutService: Workout indicators
+
+  WorkoutService -> DB: Save analytics snapshot / indicators
+  WorkoutService -> Redis: Invalidate dashboard summary cache
+  WorkoutService --> WorkoutAPI: Workout saved + indicators
+  WorkoutAPI --> Frontend: 201 Created
+  Frontend --> User: Show saved workout and performance summary
+else Invalid workout data
+  WorkoutService --> WorkoutAPI: Validation error
+  WorkoutAPI --> Frontend: 400 Bad Request
+  Frontend --> User: Show input error
+end
+
+@enduml

@@ -1,0 +1,35 @@
+@startuml
+title State Diagram: Goal Lifecycle
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam roundcorner 12
+
+[*] --> Created
+Created --> InProgress : Goal activated
+InProgress --> OnTrack : Milestones met
+InProgress --> AtRisk : Missed targets repeatedly
+OnTrack --> Achieved : Target reached
+OnTrack --> AtRisk : Progress drops
+AtRisk --> Adjusted : System / user revises goal
+Adjusted --> InProgress : New target confirmed
+InProgress --> Failed : Deadline reached\nwithout achievement
+AtRisk --> Failed : Deadline reached\nwithout achievement
+Achieved --> [*]
+Failed --> [*]
+
+note right of Created
+Goal is defined with:
+- target metric
+- target value
+- deadline
+- priority
+end note
+
+note right of AtRisk
+Examples:
+- low adherence score
+- repeated calorie deviation
+- missed workout frequency
+end note
+@enduml

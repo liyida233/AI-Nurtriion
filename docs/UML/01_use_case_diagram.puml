@@ -1,0 +1,75 @@
+@startuml
+left to right direction
+title Use Case Diagram: AI-Enhanced Fitness and Nutrition Tracking System
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #F8F8F8
+  BorderColor #333333
+  ArrowColor #333333
+}
+skinparam actor {
+  BorderColor #333333
+  BackgroundColor white
+}
+
+actor User
+actor Admin
+actor "LLM / AI Service" as AI
+
+rectangle "AI-Enhanced Fitness and Nutrition Tracking System" {
+  usecase "Register / Login" as UC1
+  usecase "Manage Profile" as UC2
+  usecase "Log Workout" as UC3
+  usecase "Log Meal" as UC4
+  usecase "Track Body Record" as UC5
+  usecase "Set / Manage Goal" as UC6
+  usecase "View Dashboard" as UC7
+  usecase "Generate AI Recommendation" as UC8
+  usecase "Generate Progress Report" as UC9
+  usecase "Submit Recommendation Feedback" as UC10
+
+  usecase "Manage Exercise Database" as UC11
+  usecase "Manage Food Database" as UC12
+  usecase "View User Analytics" as UC13
+  usecase "Manage Users / Roles" as UC14
+
+  usecase "Analyze Workout Data" as UC15
+  usecase "Analyze Nutrition Data" as UC16
+  usecase "Analyze Calorie Balance" as UC17
+  usecase "Evaluate Goal Progress" as UC18
+  usecase "Generate AI Output" as UC19
+}
+
+User --> UC1
+User --> UC2
+User --> UC3
+User --> UC4
+User --> UC5
+User --> UC6
+User --> UC7
+User --> UC8
+User --> UC9
+User --> UC10
+
+Admin --> UC11
+Admin --> UC12
+Admin --> UC13
+Admin --> UC141
+Admin --> UC7
+
+UC8 .> UC15 : <<include>>
+UC8 .> UC16 : <<include>>
+UC8 .> UC17 : <<include>>
+UC8 .> UC18 : <<include>>
+UC8 .> UC19 : <<include>>
+UC9 .> UC15 : <<include>>
+UC9 .> UC16 : <<include>>
+UC9 .> UC17 : <<include>>
+UC9 .> UC18 : <<include>>
+
+AI --> UC19
+@enduml

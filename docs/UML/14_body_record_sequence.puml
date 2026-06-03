@@ -1,0 +1,51 @@
+@startuml
+title Sequence Diagram: Body Record Update and Progress Trend Analysis
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam maxMessageSize 90
+skinparam sequence {
+  ArrowColor #333333
+  ActorBorderColor #333333
+  LifeLineBorderColor #777777
+  ParticipantBorderColor #333333
+  ParticipantBackgroundColor #F8F8F8
+}
+
+actor User
+participant "Web Dashboard" as Frontend
+participant "Body Progress Controller\n(Backend API)" as BodyAPI
+participant "Body Progress Service" as BodyService
+participant "Progress Analysis Service" as Analysis
+database "MySQL Database" as DB
+collections "Redis Cache" as Redis
+
+User -> Frontend: Enter body weight / body record
+Frontend -> BodyAPI: POST /api/body-records
+BodyAPI -> BodyService: Validate record date and weight
+
+alt Valid body record
+  BodyService -> DB: Save body_record
+  DB --> BodyService: Save success
+
+  BodyService -> Analysis: Recalculate body progress trend
+  Analysis -> DB: Retrieve recent body records\nand calorie balance history
+  DB --> Analysis: Time-series progress data
+  Analysis -> Analysis: Calculate 7-day moving average
+  Analysis -> Analysis: Classify weight trend
+  Analysis -> Analysis: Detect abnormal change\nor inconsistent logging
+  Analysis --> BodyService: Progress indicators
+
+  BodyService -> DB: Save progress analytics snapshot
+  BodyService -> Redis: Invalidate dashboard summary cache
+  BodyService --> BodyAPI: Record saved + trend summary
+  BodyAPI --> Frontend: 201 Created
+  Frontend --> User: Show updated weight trend
+else Invalid body record
+  BodyService --> BodyAPI: Validation error
+  BodyAPI --> Frontend: 400 Bad Request
+  Frontend --> User: Show correction message
+end
+
+@enduml

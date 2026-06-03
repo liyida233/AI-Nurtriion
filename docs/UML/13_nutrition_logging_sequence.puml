@@ -1,0 +1,55 @@
+@startuml
+title Sequence Diagram: Nutrition Logging and Dietary Pattern Analysis
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam maxMessageSize 90
+skinparam sequence {
+  ArrowColor #333333
+  ActorBorderColor #333333
+  LifeLineBorderColor #777777
+  ParticipantBorderColor #333333
+  ParticipantBackgroundColor #F8F8F8
+}
+
+actor User
+participant "Web Dashboard" as Frontend
+participant "Nutrition Controller\n(Backend API)" as NutritionAPI
+participant "Nutrition Service" as NutritionService
+participant "Nutrition Analysis Service" as Analysis
+database "MySQL Database" as DB
+collections "Redis Cache" as Redis
+
+User -> Frontend: Log meal / food intake
+Frontend -> NutritionAPI: POST /api/meals
+NutritionAPI -> NutritionService: Validate meal payload
+NutritionService -> DB: Retrieve food item nutrition values
+DB --> NutritionService: Calories, protein, carbs, fat
+
+alt Food item exists and quantity valid
+  NutritionService -> NutritionService: Calculate nutrition values\nbased on quantity
+  NutritionService -> DB: Save meal_log
+  DB --> NutritionService: Save success
+
+  NutritionService -> Analysis: Analyze daily nutrition
+  Analysis -> DB: Retrieve today's meal logs and targets
+  DB --> Analysis: Daily nutrition records + goal targets
+  Analysis -> Analysis: Calculate daily calories
+  Analysis -> Analysis: Calculate macro distribution
+  Analysis -> Analysis: Compare target vs actual intake
+  Analysis -> Analysis: Detect nutrition gaps\nor repeated excess
+  Analysis --> NutritionService: Nutrition indicators
+
+  NutritionService -> DB: Save analytics snapshot / indicators
+  NutritionService -> Redis: Invalidate dashboard summary cache
+  NutritionService --> NutritionAPI: Meal saved + nutrition summary
+  NutritionAPI --> Frontend: 201 Created
+  Frontend --> User: Show meal log and daily macro summary
+else Invalid food or quantity
+  NutritionService --> NutritionAPI: Validation error
+  NutritionAPI --> Frontend: 400 Bad Request
+  Frontend --> User: Show input error
+end
+
+@enduml

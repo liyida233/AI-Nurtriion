@@ -1,0 +1,83 @@
+@startuml
+title Sequence Diagram: AI-Based Personalized Recommendation Workflow
+
+skinparam backgroundColor white
+skinparam sequence {
+    ArrowColor #333333
+    ActorBorderColor #333333
+    LifeLineBorderColor #777777
+    LifeLineBackgroundColor #FFFFFF
+    ParticipantBorderColor #333333
+    ParticipantBackgroundColor #F8F8F8
+}
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam maxMessageSize 90
+
+actor User
+
+box "Frontend Layer" #F7F7F7
+participant "Web Dashboard" as Frontend
+end box
+
+box "Backend Layer" #F7F7F7
+participant "Backend API\nGo Service" as Backend
+participant "Analytics Service" as Analytics
+participant "AI Recommendation\nService" as AIService
+participant "Safety Validator" as Validator
+end box
+
+box "Data Layer" #F7F7F7
+database "MySQL Database" as DB
+participant "Redis Cache" as Redis
+end box
+
+box "External AI Layer" #F7F7F7
+participant "LLM / AI API" as LLM
+end box
+
+User -> Frontend: Click "Generate Recommendation"
+Frontend -> Backend: POST /api/recommendations/generate
+
+Backend -> Redis: Check cached analytics summary
+
+alt Cached summary available
+    Redis --> Backend: Return cached indicators
+else Cached summary unavailable
+    Backend -> DB: Retrieve profile and historical logs
+    DB --> Backend: Profile, workout, meal, body, goal data
+
+    Backend -> Analytics: Analyze user data
+    Analytics -> Analytics: Calculate workout indicators
+    Analytics -> Analytics: Calculate nutrition indicators
+    Analytics -> Analytics: Calculate calorie balance
+    Analytics -> Analytics: Calculate goal adherence
+    Analytics -> Analytics: Detect trends and gaps
+    Analytics --> Backend: Return analytical indicators
+
+    Backend -> Redis: Store summary for reuse
+end
+
+Backend -> AIService: Build structured recommendation context
+AIService -> AIService: Create prompt from user state
+AIService -> LLM: Send structured prompt
+LLM --> AIService: Return plan, suggestions,\nand explanation
+
+AIService -> Validator: Validate recommendation
+Validator -> Validator: Check format and safety boundaries
+Validator --> AIService: Approved recommendation
+
+AIService --> Backend: Return validated recommendation
+Backend -> DB: Save recommendation record
+DB --> Backend: Save success
+
+Backend --> Frontend: Return recommendation result
+Frontend --> User: Display personalized recommendation
+
+User -> Frontend: Submit feedback
+Frontend -> Backend: POST /api/recommendations/{id}/feedback
+Backend -> DB: Save recommendation feedback
+DB --> Backend: Save success
+Backend --> Frontend: Feedback recorded
+
+@enduml

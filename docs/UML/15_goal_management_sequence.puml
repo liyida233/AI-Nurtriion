@@ -1,0 +1,49 @@
+@startuml
+title Sequence Diagram: Goal Creation, Feasibility Check, and Monitoring
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam maxMessageSize 90
+skinparam sequence {
+  ArrowColor #333333
+  ActorBorderColor #333333
+  LifeLineBorderColor #777777
+  ParticipantBorderColor #333333
+  ParticipantBackgroundColor #F8F8F8
+}
+
+actor User
+participant "Web Dashboard" as Frontend
+participant "Goal Controller\n(Backend API)" as GoalAPI
+participant "Goal Service" as GoalService
+participant "Goal Analysis Service" as GoalAnalysis
+database "MySQL Database" as DB
+collections "Redis Cache" as Redis
+
+User -> Frontend: Create or update SMART goal
+Frontend -> GoalAPI: POST /api/goals
+GoalAPI -> GoalService: Validate goal payload
+GoalService -> GoalAnalysis: Check goal feasibility
+
+GoalAnalysis -> GoalAnalysis: Evaluate target value,\ndeadline, metric, and user profile
+GoalAnalysis -> GoalAnalysis: Detect unrealistic weight loss,\nexcessive workout frequency,\nor unsafe calorie target
+GoalAnalysis --> GoalService: Feasibility result
+
+alt Goal is feasible
+  GoalService -> DB: Save goal
+  DB --> GoalService: Save success
+  GoalService -> GoalAnalysis: Generate milestones
+  GoalAnalysis --> GoalService: Weekly / monthly milestones
+  GoalService -> DB: Save goal milestones
+  GoalService -> Redis: Invalidate goal/dashboard cache
+  GoalService --> GoalAPI: Goal saved + milestones
+  GoalAPI --> Frontend: 201 Created
+  Frontend --> User: Show goal progress plan
+else Goal is risky or unrealistic
+  GoalService --> GoalAPI: Feasibility warning + suggested adjustment
+  GoalAPI --> Frontend: 422 Unprocessable Entity
+  Frontend --> User: Show warning and safer alternatives
+end
+
+@enduml

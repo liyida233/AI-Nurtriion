@@ -1,0 +1,143 @@
+@startuml
+title ERD (Bonus, Non-UML): Database Relationship Overview
+
+hide methods
+hide stereotypes
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam linetype ortho
+
+entity User {
+  * user_id : UUID
+  --
+  name : varchar
+  email : varchar
+  role : varchar
+}
+
+entity UserProfile {
+  * profile_id : UUID
+  --
+  user_id : UUID
+  age : int
+  gender : varchar
+  height_cm : decimal
+  weight_kg : decimal
+  activity_level : varchar
+  primary_goal : varchar
+}
+
+entity Exercise {
+  * exercise_id : UUID
+  --
+  name : varchar
+  category : varchar
+  muscle_group : varchar
+  equipment : varchar
+}
+
+entity WorkoutSession {
+  * session_id : UUID
+  --
+  user_id : UUID
+  workout_date : date
+  category : varchar
+  duration_min : int
+}
+
+entity WorkoutEntry {
+  * entry_id : UUID
+  --
+  session_id : UUID
+  exercise_id : UUID
+  sets : int
+  reps : int
+  weight_kg : decimal
+}
+
+entity FoodItem {
+  * food_item_id : UUID
+  --
+  name : varchar
+  calories : decimal
+  protein : decimal
+  carbohydrates : decimal
+  fat : decimal
+}
+
+entity MealLog {
+  * meal_log_id : UUID
+  --
+  user_id : UUID
+  food_item_id : UUID
+  meal_type : varchar
+  quantity : decimal
+  meal_time : datetime
+}
+
+entity BodyRecord {
+  * body_record_id : UUID
+  --
+  user_id : UUID
+  record_date : date
+  weight_kg : decimal
+}
+
+entity Goal {
+  * goal_id : UUID
+  --
+  user_id : UUID
+  goal_type : varchar
+  target_value : decimal
+  deadline : date
+  status : varchar
+}
+
+entity AnalyticsSnapshot {
+  * snapshot_id : UUID
+  --
+  user_id : UUID
+  period_type : varchar
+  start_date : date
+  end_date : date
+}
+
+entity AIRecommendation {
+  * recommendation_id : UUID
+  --
+  user_id : UUID
+  type : varchar
+  content : text
+  created_at : datetime
+}
+
+entity RecommendationFeedback {
+  * feedback_id : UUID
+  --
+  recommendation_id : UUID
+  rating : varchar
+  comment : text
+}
+
+entity ProgressReport {
+  * report_id : UUID
+  --
+  user_id : UUID
+  period_type : varchar
+  generated_at : datetime
+  file_url : varchar
+}
+
+User ||--|| UserProfile
+User ||--o{ WorkoutSession
+WorkoutSession ||--o{ WorkoutEntry
+Exercise ||--o{ WorkoutEntry
+User ||--o{ MealLog
+FoodItem ||--o{ MealLog
+User ||--o{ BodyRecord
+User ||--o{ Goal
+User ||--o{ AnalyticsSnapshot
+User ||--o{ AIRecommendation
+AIRecommendation ||--o{ RecommendationFeedback
+User ||--o{ ProgressReport
+@enduml

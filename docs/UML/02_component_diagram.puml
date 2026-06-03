@@ -1,0 +1,66 @@
+@startuml
+title Component Diagram: System Architecture
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+
+package "Frontend Layer" {
+  [Web Dashboard] as Frontend
+}
+
+package "Backend API Layer (Go)" {
+  [Authentication Module] as Auth
+  [Workout Module] as Workout
+  [Nutrition Module] as Nutrition
+  [Calorie & Progress Module] as Calorie
+  [Goal Management Module] as Goal
+  [AI Recommendation Module] as Rec
+  [Reporting Module] as Report
+  [Analytics Service] as Analytics
+}
+
+package "Data Layer" {
+  database "MySQL Database" as DB
+  collections "Redis Cache / Session" as Redis
+}
+
+package "External Service Layer" {
+  [LLM / AI API] as LLM
+}
+
+Frontend --> Auth : Register / Login
+Frontend --> Workout : Workout requests
+Frontend --> Nutrition : Nutrition requests
+Frontend --> Calorie : Progress requests
+Frontend --> Goal : Goal requests
+Frontend --> Rec : Recommendation requests
+Frontend --> Report : Dashboard / report requests
+
+Auth --> DB
+Workout --> DB
+Nutrition --> DB
+Calorie --> DB
+Goal --> DB
+Report --> DB
+Analytics --> DB
+
+Auth --> Redis : Session / token cache
+Report --> Redis : Cache summaries
+Analytics --> Redis : Cache indicators
+
+Workout --> Analytics : Workout indicators
+Nutrition --> Analytics : Nutrition indicators
+Calorie --> Analytics : Calorie indicators
+Goal --> Analytics : Adherence indicators
+
+Rec --> Analytics : Structured user context
+Rec --> LLM : Prompt / completion
+Report --> LLM : AI-generated summary
+
+Report --> Analytics : Comparative metrics
+Calorie --> Analytics
+Goal --> Analytics
+@enduml
