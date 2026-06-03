@@ -20,7 +20,11 @@ type Config struct {
 	RedisPassword string
 	RedisDB       int
 
-	AIProvider string
+	AIProvider         string
+	AIAPIKey           string
+	AIBaseURL          string
+	AIModel            string
+	AIRateLimitPerHour int
 }
 
 func Load() Config {
@@ -30,7 +34,7 @@ func Load() Config {
 		JWTSecret: env("JWT_SECRET", "local-development-secret"),
 
 		DBHost:     env("DB_HOST", "localhost"),
-		DBPort:     env("DB_PORT", "3306"),
+		DBPort:     env("DB_PORT", "13306"),
 		DBUser:     env("DB_USER", "ai_nutrition"),
 		DBPassword: env("DB_PASSWORD", "ai_nutrition"),
 		DBName:     env("DB_NAME", "ai_nutrition"),
@@ -39,7 +43,11 @@ func Load() Config {
 		RedisPassword: env("REDIS_PASSWORD", ""),
 		RedisDB:       envInt("REDIS_DB", 0),
 
-		AIProvider: env("AI_PROVIDER", "mock"),
+		AIProvider:         env("AI_PROVIDER", "mock"),
+		AIAPIKey:           env("AI_API_KEY", ""),
+		AIBaseURL:          env("AI_BASE_URL", "https://api.openai.com/v1"),
+		AIModel:            env("AI_MODEL", "gpt-4o-mini"),
+		AIRateLimitPerHour: envInt("AI_RATE_LIMIT_PER_HOUR", 10),
 	}
 }
 

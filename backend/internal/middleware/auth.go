@@ -8,9 +8,10 @@ import (
 	"ai-nutrition/backend/internal/httpctx"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/redis/go-redis/v9"
 )
 
-func AuthRequired(cfg config.Config) gin.HandlerFunc {
+func AuthRequired(cfg config.Config, redisClient *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		header := c.GetHeader("Authorization")
 		if header == "" || !strings.HasPrefix(header, "Bearer ") {
@@ -41,6 +42,14 @@ func AuthRequired(cfg config.Config) gin.HandlerFunc {
 			httpctx.Error(c, http.StatusUnauthorized, "invalid token subject")
 			c.Abort()
 			return
+		}
+
+		if redisClient != nil {
+			if err := redisClient.Get(c.Request.Context(), "session:"+sub).Err(); err != nil {
+				httpctx.Error(c, http.StatusUnauthorized, "session expired or logged out")
+				c.Abort()
+				return
+			}
 		}
 
 		httpctx.SetUserID(c, sub)

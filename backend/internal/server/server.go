@@ -5,6 +5,7 @@ import (
 
 	"ai-nutrition/backend/internal/config"
 	"ai-nutrition/backend/internal/middleware"
+	adminmodule "ai-nutrition/backend/internal/modules/admin"
 	"ai-nutrition/backend/internal/modules/analytics"
 	"ai-nutrition/backend/internal/modules/auth"
 	"ai-nutrition/backend/internal/modules/body"
@@ -12,6 +13,7 @@ import (
 	"ai-nutrition/backend/internal/modules/nutrition"
 	"ai-nutrition/backend/internal/modules/profile"
 	"ai-nutrition/backend/internal/modules/recommendation"
+	"ai-nutrition/backend/internal/modules/report"
 	"ai-nutrition/backend/internal/modules/workout"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -40,8 +42,9 @@ func New(cfg config.Config, db *gorm.DB, redisClient *redis.Client) *gin.Engine 
 	auth.RegisterRoutes(api.Group("/auth"), cfg, db, redisClient)
 
 	protected := api.Group("")
-	protected.Use(middleware.AuthRequired(cfg))
+	protected.Use(middleware.AuthRequired(cfg, redisClient))
 
+	auth.RegisterProtectedRoutes(protected.Group("/auth"), cfg, db, redisClient)
 	profile.RegisterRoutes(protected.Group("/profile"), db, redisClient)
 	workout.RegisterRoutes(protected.Group("/workouts"), db, redisClient)
 	nutrition.RegisterRoutes(protected.Group("/nutrition"), db, redisClient)
@@ -49,6 +52,13 @@ func New(cfg config.Config, db *gorm.DB, redisClient *redis.Client) *gin.Engine 
 	goal.RegisterRoutes(protected.Group("/goals"), db, redisClient)
 	analytics.RegisterRoutes(protected.Group("/dashboard"), db, redisClient)
 	recommendation.RegisterRoutes(protected.Group("/recommendations"), cfg, db, redisClient)
+	report.RegisterRoutes(protected.Group("/reports"), db, redisClient)
+
+	adminRoutes := protected.Group("/admin")
+	adminRoutes.Use(middleware.AdminRequired(db))
+	adminmodule.RegisterRoutes(adminRoutes, db)
+	workout.RegisterAdminRoutes(adminRoutes.Group("/workouts"), db, redisClient)
+	nutrition.RegisterAdminRoutes(adminRoutes.Group("/nutrition"), db, redisClient)
 
 	return router
 }

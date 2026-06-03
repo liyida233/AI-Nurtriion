@@ -3,6 +3,7 @@ import {
   Apple,
   Bot,
   Dumbbell,
+  FileText,
   Flag,
   LogOut,
   RefreshCw,
@@ -42,6 +43,13 @@ type Recommendation = {
   createdAt: string;
 };
 
+type ProgressReport = {
+  id: string;
+  periodType: string;
+  generatedAt: string;
+  summary: string;
+};
+
 type Exercise = {
   id: string;
   name: string;
@@ -61,6 +69,7 @@ const navItems = [
   { key: "nutrition", label: "Nutrition", icon: Apple },
   { key: "body", label: "Body", icon: Scale },
   { key: "goals", label: "Goals", icon: Flag },
+  { key: "reports", label: "Reports", icon: FileText },
   { key: "ai", label: "AI", icon: Bot }
 ] as const;
 
@@ -75,6 +84,7 @@ export default function App() {
   const [active, setActive] = useState<NavKey>("dashboard");
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [reports, setReports] = useState<ProgressReport[]>([]);
   const [message, setMessage] = useState("");
 
   const isAuthed = Boolean(token);
@@ -97,10 +107,19 @@ export default function App() {
     }
   }
 
+  async function loadReports() {
+    if (!token) return;
+    const result = await api<ProgressReport[]>("/reports", {}, token);
+    if (!result.error) {
+      setReports(result.data ?? []);
+    }
+  }
+
   useEffect(() => {
     if (isAuthed) {
       loadDashboard();
       loadRecommendations();
+      loadReports();
     }
   }, [isAuthed]);
 
@@ -180,6 +199,9 @@ export default function App() {
         {active === "nutrition" && <NutritionPanel token={token} onSaved={loadDashboard} setMessage={setMessage} />}
         {active === "body" && <BodyPanel token={token} onSaved={loadDashboard} setMessage={setMessage} />}
         {active === "goals" && <GoalPanel token={token} onSaved={loadDashboard} setMessage={setMessage} />}
+        {active === "reports" && (
+          <ReportPanel token={token} reports={reports} reload={loadReports} setMessage={setMessage} />
+        )}
         {active === "ai" && (
           <AIPanel
             token={token}
@@ -483,6 +505,52 @@ function AIPanel({
         <article className="recommendation" key={item.id}>
           <span>{item.type}</span>
           <pre>{item.content}</pre>
+        </article>
+      ))}
+    </section>
+  );
+}
+
+function ReportPanel({
+  token,
+  reports,
+  reload,
+  setMessage
+}: {
+  token: string;
+  reports: ProgressReport[];
+  reload: () => void;
+  setMessage: (message: string) => void;
+}) {
+  async function generate(periodType: "weekly" | "monthly") {
+    const result = await api<{ report: ProgressReport; metrics: DashboardSummary }>(
+      "/reports/generate",
+      { method: "POST", body: JSON.stringify({ periodType }) },
+      token
+    );
+    if (result.error) {
+      setMessage(result.error);
+      return;
+    }
+    setMessage(`${periodType} report generated`);
+    reload();
+  }
+
+  return (
+    <section className="panel-stack">
+      <div className="action-row">
+        <button className="primary" onClick={() => generate("weekly")}>
+          Generate weekly report
+        </button>
+        <button onClick={() => generate("monthly")}>Generate monthly report</button>
+      </div>
+      {reports.length === 0 && <div className="notice">No reports yet. Generate one from current analytics.</div>}
+      {reports.map((report) => (
+        <article className="recommendation" key={report.id}>
+          <span>
+            {report.periodType} · {new Date(report.generatedAt).toLocaleString()}
+          </span>
+          <pre>{report.summary}</pre>
         </article>
       ))}
     </section>

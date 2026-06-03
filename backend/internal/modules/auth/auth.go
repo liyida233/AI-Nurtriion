@@ -39,6 +39,12 @@ func RegisterRoutes(router *gin.RouterGroup, cfg config.Config, db *gorm.DB, red
 	router.POST("/login", handler.Login)
 }
 
+func RegisterProtectedRoutes(router *gin.RouterGroup, cfg config.Config, db *gorm.DB, redisClient *redis.Client) {
+	handler := Handler{cfg: cfg, db: db, redis: redisClient}
+	router.GET("/me", handler.Me)
+	router.POST("/logout", handler.Logout)
+}
+
 func (h Handler) Register(c *gin.Context) {
 	var req registerRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -99,6 +105,33 @@ func (h Handler) Login(c *gin.Context) {
 	}
 
 	httpctx.OK(c, gin.H{"token": token, "user": user})
+}
+
+func (h Handler) Me(c *gin.Context) {
+	userID, err := httpctx.UserID(c)
+	if err != nil {
+		httpctx.Error(c, http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	var user models.User
+	if err := h.db.Preload("Profile").First(&user, "id = ?", userID).Error; err != nil {
+		httpctx.Error(c, http.StatusNotFound, "user not found")
+		return
+	}
+	httpctx.OK(c, user)
+}
+
+func (h Handler) Logout(c *gin.Context) {
+	userID, err := httpctx.UserID(c)
+	if err != nil {
+		httpctx.Error(c, http.StatusUnauthorized, err.Error())
+		return
+	}
+	if h.redis != nil {
+		_ = h.redis.Del(c.Request.Context(), "session:"+userID).Err()
+	}
+	httpctx.OK(c, gin.H{"loggedOut": true})
 }
 
 func (h Handler) issueToken(ctx context.Context, userID string) (string, error) {
