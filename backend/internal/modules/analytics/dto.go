@@ -5,6 +5,9 @@ import "time"
 type DashboardSummary struct {
 	Period                    string         `json:"period"`
 	GeneratedAt               time.Time      `json:"generatedAt"`
+	StartDate                 time.Time      `json:"startDate"`
+	EndDate                   time.Time      `json:"endDate"`
+	Days                      float64        `json:"days"`
 	WorkoutSessions           int64          `json:"workoutSessions"`
 	TrainingVolume            float64        `json:"trainingVolume"`
 	WorkoutConsistency        float64        `json:"workoutConsistency"`
@@ -16,6 +19,7 @@ type DashboardSummary struct {
 	Carbohydrates             float64        `json:"carbohydrates"`
 	Fat                       float64        `json:"fat"`
 	MealCount                 int64          `json:"mealCount"`
+	MealLogDays               int64          `json:"mealLogDays"`
 	MealQualityScore          float64        `json:"mealQualityScore"`
 	ProteinRatio              float64        `json:"proteinRatio"`
 	CarbohydrateRatio         float64        `json:"carbohydrateRatio"`

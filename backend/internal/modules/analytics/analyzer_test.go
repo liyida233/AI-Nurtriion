@@ -45,6 +45,20 @@ func TestProgressiveOverloadStatus(t *testing.T) {
 	}
 }
 
+func TestProgressiveOverloadStatusFallsBackToRepsWhenWeightMissing(t *testing.T) {
+	base := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+	sessions := []models.WorkoutSession{
+		sessionWithVolume(base, 3, 10, 0),
+		sessionWithVolume(base.AddDate(0, 0, 1), 3, 10, 0),
+		sessionWithVolume(base.AddDate(0, 0, 2), 5, 8, 0),
+	}
+
+	got := ProgressiveOverloadStatus(sessions)
+	if got != "improving" {
+		t.Fatalf("ProgressiveOverloadStatus() = %s, want improving", got)
+	}
+}
+
 func TestMuscleGroupWarnings(t *testing.T) {
 	distribution := map[string]int{
 		"chest": 4,
@@ -73,6 +87,35 @@ func TestMealQualityScore(t *testing.T) {
 	want := 40.0
 	if got != want {
 		t.Fatalf("MealQualityScore() = %v, want %v", got, want)
+	}
+}
+
+func TestMealQualityScoreUsesMealLogDays(t *testing.T) {
+	summary := DashboardSummary{
+		Days:              60,
+		MealLogDays:       1,
+		MealCount:         2,
+		Protein:           70,
+		FatRatio:          30,
+		CarbohydrateRatio: 45,
+		CalorieStatus:     "maintenance",
+	}
+
+	got := MealQualityScore(summary)
+	if got != 100 {
+		t.Fatalf("MealQualityScore() = %v, want 100", got)
+	}
+}
+
+func TestMovingAverageWeightUsesSevenDayWindow(t *testing.T) {
+	records := []models.BodyRecord{
+		{RecordDate: time.Date(2026, 4, 8, 0, 0, 0, 0, time.UTC), WeightKg: 82},
+		{RecordDate: time.Date(2026, 6, 8, 0, 0, 0, 0, time.UTC), WeightKg: 70},
+	}
+
+	got := MovingAverageWeight(records, 7)
+	if got != 70 {
+		t.Fatalf("MovingAverageWeight() = %v, want 70", got)
 	}
 }
 

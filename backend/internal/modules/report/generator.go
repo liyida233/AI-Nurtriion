@@ -21,8 +21,8 @@ func BuildNarrativeSummary(summary analytics.DashboardSummary) string {
 	if summary.WorkoutSessions < 3 {
 		lines = append(lines, "Insight: workout consistency is below the recommended weekly target for this system.")
 	}
-	if summary.Protein < 420 {
-		lines = append(lines, "Insight: weekly protein intake appears low; future meal suggestions should prioritize protein.")
+	if summary.Protein < 60*summary.Days {
+		lines = append(lines, "Insight: protein intake appears low for the selected period; future meal suggestions should prioritize protein.")
 	}
 	if summary.ActiveGoals == 0 {
 		lines = append(lines, "Insight: no active goals were found, so progress interpretation is less targeted.")

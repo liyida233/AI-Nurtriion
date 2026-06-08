@@ -17,18 +17,37 @@ func NewRepository(db *gorm.DB) Repository {
 
 func (r Repository) List(ctx context.Context, userID string) ([]models.Goal, error) {
 	var goals []models.Goal
-	err := r.db.WithContext(ctx).Preload("Milestones").Where("user_id = ?", userID).Order("created_at desc").Find(&goals).Error
+	err := r.db.WithContext(ctx).
+		Preload("Milestones", func(db *gorm.DB) *gorm.DB { return db.Order("due_date asc") }).
+		Where("user_id = ?", userID).
+		Order("created_at desc").
+		Find(&goals).Error
 	return goals, err
 }
 
 func (r Repository) Get(ctx context.Context, userID, id string) (models.Goal, error) {
 	var goal models.Goal
-	err := r.db.WithContext(ctx).Preload("Milestones").Where("id = ? AND user_id = ?", id, userID).First(&goal).Error
+	err := r.db.WithContext(ctx).
+		Preload("Milestones", func(db *gorm.DB) *gorm.DB { return db.Order("due_date asc") }).
+		Where("id = ? AND user_id = ?", id, userID).
+		First(&goal).Error
 	return goal, err
 }
 
 func (r Repository) Save(ctx context.Context, goal *models.Goal) error {
 	return r.db.WithContext(ctx).Save(goal).Error
+}
+
+func (r Repository) ReplaceMilestones(ctx context.Context, goalID string, milestones []models.GoalMilestone) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Delete(&models.GoalMilestone{}, "goal_id = ?", goalID).Error; err != nil {
+			return err
+		}
+		if len(milestones) == 0 {
+			return nil
+		}
+		return tx.Create(&milestones).Error
+	})
 }
 
 func (r Repository) Create(ctx context.Context, goal *models.Goal) error {

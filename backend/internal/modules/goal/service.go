@@ -42,7 +42,11 @@ func (s Service) Create(ctx context.Context, userID string, req GoalRequest) (mo
 		UserID: userID,
 		Status: "active",
 	}, req, deadline)
-	goal.Milestones = buildMilestones(goal)
+	milestones, err := resolveMilestones(goal, req)
+	if err != nil {
+		return models.Goal{}, err
+	}
+	goal.Milestones = milestones
 	if err := s.repo.Create(ctx, &goal); err != nil {
 		return goal, err
 	}
@@ -65,6 +69,15 @@ func (s Service) Update(ctx context.Context, userID, id string, req GoalRequest)
 	goal = mapGoal(goal, req, deadline)
 	if err := s.repo.Save(ctx, &goal); err != nil {
 		return goal, err
+	}
+	if req.Milestones != nil {
+		milestones, err := resolveMilestones(goal, req)
+		if err != nil {
+			return goal, err
+		}
+		if err := s.repo.ReplaceMilestones(ctx, goal.ID, milestones); err != nil {
+			return goal, err
+		}
 	}
 	shared.InvalidateDashboard(ctx, s.redis, userID)
 	return s.repo.Get(ctx, userID, id)
@@ -150,4 +163,29 @@ func buildMilestones(goal models.Goal) []models.GoalMilestone {
 		})
 	}
 	return milestones
+}
+
+func resolveMilestones(goal models.Goal, req GoalRequest) ([]models.GoalMilestone, error) {
+	if len(req.Milestones) == 0 {
+		return buildMilestones(goal), nil
+	}
+	milestones := make([]models.GoalMilestone, 0, len(req.Milestones))
+	for index, item := range req.Milestones {
+		if item.Title == "" {
+			item.Title = "Milestone " + string(rune('1'+index))
+		}
+		dueDate, err := parseDate(item.DueDate)
+		if err != nil {
+			return nil, errors.New("milestone dueDate must be YYYY-MM-DD")
+		}
+		milestones = append(milestones, models.GoalMilestone{
+			ID:          uuid.NewString(),
+			GoalID:      goal.ID,
+			Title:       item.Title,
+			TargetValue: item.TargetValue,
+			DueDate:     dueDate,
+			Completed:   false,
+		})
+	}
+	return milestones, nil
 }

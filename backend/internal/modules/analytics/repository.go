@@ -16,15 +16,18 @@ func NewRepository(db *gorm.DB) Repository {
 	return Repository{db: db}
 }
 
-func (r Repository) WorkoutSessions(ctx context.Context, userID string, start time.Time) ([]models.WorkoutSession, error) {
+func (r Repository) WorkoutSessions(ctx context.Context, userID string, start, end time.Time) ([]models.WorkoutSession, error) {
 	var sessions []models.WorkoutSession
-	err := r.db.WithContext(ctx).Preload("Entries.Exercise").Where("user_id = ? AND workout_date >= ?", userID, start).Find(&sessions).Error
+	err := r.db.WithContext(ctx).
+		Preload("Entries.Exercise").
+		Where("user_id = ? AND workout_date >= ? AND workout_date <= ?", userID, start, end).
+		Find(&sessions).Error
 	return sessions, err
 }
 
-func (r Repository) Meals(ctx context.Context, userID string, start time.Time) ([]models.MealLog, error) {
+func (r Repository) Meals(ctx context.Context, userID string, start, end time.Time) ([]models.MealLog, error) {
 	var meals []models.MealLog
-	err := r.db.WithContext(ctx).Where("user_id = ? AND meal_time >= ?", userID, start).Find(&meals).Error
+	err := r.db.WithContext(ctx).Where("user_id = ? AND meal_time >= ? AND meal_time <= ?", userID, start, end).Find(&meals).Error
 	return meals, err
 }
 
@@ -34,9 +37,9 @@ func (r Repository) Profile(ctx context.Context, userID string) (models.UserProf
 	return profile, err
 }
 
-func (r Repository) BodyRecords(ctx context.Context, userID string) ([]models.BodyRecord, error) {
+func (r Repository) BodyRecords(ctx context.Context, userID string, end time.Time) ([]models.BodyRecord, error) {
 	var records []models.BodyRecord
-	err := r.db.WithContext(ctx).Where("user_id = ?", userID).Order("record_date asc").Limit(30).Find(&records).Error
+	err := r.db.WithContext(ctx).Where("user_id = ? AND record_date <= ?", userID, end).Order("record_date asc").Limit(30).Find(&records).Error
 	return records, err
 }
 

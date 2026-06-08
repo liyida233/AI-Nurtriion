@@ -26,14 +26,22 @@ func (c Controller) Summary(ctx *gin.Context) {
 		return
 	}
 	period := ctx.DefaultQuery("period", "weekly")
+	startDate := ctx.Query("startDate")
+	endDate := ctx.Query("endDate")
 	persist := ctx.DefaultQuery("persist", "false") == "true"
 
-	if cached, ok := c.service.CachedSummary(ctx.Request.Context(), userID, period); ok && !persist {
+	start, end, normalizedPeriod, err := ResolveRange(period, startDate, endDate)
+	if err != nil {
+		httpctx.Error(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if cached, ok := c.service.CachedSummary(ctx.Request.Context(), userID, normalizedPeriod); ok && !persist {
 		httpctx.OK(ctx, cached)
 		return
 	}
 
-	summary, err := c.service.BuildSummary(ctx.Request.Context(), userID, period, persist)
+	summary, err := c.service.BuildSummary(ctx.Request.Context(), userID, normalizedPeriod, start, end, persist)
 	if err == nil {
 		c.service.CacheSummary(ctx.Request.Context(), userID, summary)
 	}

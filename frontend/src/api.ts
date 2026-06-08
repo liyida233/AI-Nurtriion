@@ -25,3 +25,18 @@ export async function api<T>(
   }
   return { data: payload.data as T };
 }
+
+export async function downloadFile(path: string, token: string): Promise<ApiResult<Blob>> {
+  const response = await fetch(`${API_BASE}${path}`, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }
+  });
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    return { error: payload.error ?? "Download failed" };
+  }
+
+  return { data: await response.blob() };
+}

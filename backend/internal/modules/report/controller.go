@@ -101,7 +101,10 @@ func respond(ctx *gin.Context, data any, err error) {
 			status = http.StatusNotFound
 			message = "resource not found"
 		}
-		if message == "periodType must be weekly or monthly" {
+		if message == "period must be daily, weekly, monthly, or custom" ||
+			message == "startDate is required for custom period" ||
+			message == "endDate is required for custom period" ||
+			message == "endDate must be after startDate" {
 			status = http.StatusBadRequest
 		}
 		httpctx.Error(ctx, status, message)

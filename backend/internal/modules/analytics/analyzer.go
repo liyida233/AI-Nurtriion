@@ -51,15 +51,24 @@ func MovingAverageWeight(records []models.BodyRecord, days int) float64 {
 	if len(records) == 0 {
 		return 0
 	}
-	start := len(records) - days
-	if start < 0 {
-		start = 0
-	}
+	sort.Slice(records, func(i, j int) bool {
+		return records[i].RecordDate.Before(records[j].RecordDate)
+	})
+	end := records[len(records)-1].RecordDate
+	startDate := end.AddDate(0, 0, -(days - 1))
 	var total float64
-	for _, record := range records[start:] {
+	var count float64
+	for _, record := range records {
+		if record.RecordDate.Before(startDate) || record.RecordDate.After(end) {
+			continue
+		}
 		total += record.WeightKg
+		count++
 	}
-	return math.Round(total/float64(len(records[start:]))*10) / 10
+	if count == 0 {
+		return 0
+	}
+	return math.Round(total/count*10) / 10
 }
 
 func MacroRatios(protein, carbohydrates, fat float64) (float64, float64, float64) {
@@ -75,8 +84,8 @@ func MacroRatios(protein, carbohydrates, fat float64) (float64, float64, float64
 
 func NutritionGaps(summary DashboardSummary) []string {
 	gaps := []string{}
-	if summary.Protein < 420 {
-		gaps = append(gaps, "low_weekly_protein")
+	if summary.Protein < proteinTarget(summary) {
+		gaps = append(gaps, "low_protein_intake")
 	}
 	if summary.CaloriesIn == 0 {
 		gaps = append(gaps, "no_recent_meal_logs")
@@ -170,7 +179,7 @@ func MealQualityScore(summary DashboardSummary) float64 {
 	if summary.MealCount == 0 {
 		return 0
 	}
-	if summary.Protein < 420 {
+	if summary.Protein < proteinTarget(summary) {
 		score -= 25
 	}
 	if summary.FatRatio > 40 {
@@ -183,6 +192,17 @@ func MealQualityScore(summary DashboardSummary) float64 {
 		score -= 10
 	}
 	return Clamp(score, 0, 100)
+}
+
+func proteinTarget(summary DashboardSummary) float64 {
+	days := summary.Days
+	if summary.MealLogDays > 0 {
+		days = float64(summary.MealLogDays)
+	}
+	if days <= 0 {
+		days = 7
+	}
+	return 60 * days
 }
 
 func ClassifyCalorieBalance(balance float64) string {
@@ -213,7 +233,11 @@ func totalVolume(sessions []models.WorkoutSession) float64 {
 	var volume float64
 	for _, session := range sessions {
 		for _, entry := range session.Entries {
-			volume += float64(entry.Sets*entry.Reps) * entry.WeightKg
+			load := entry.WeightKg
+			if load <= 0 {
+				load = 1
+			}
+			volume += float64(entry.Sets*entry.Reps) * load
 		}
 	}
 	return volume

@@ -36,17 +36,18 @@ func (s Service) Get(ctx context.Context, userID, id string) (models.ProgressRep
 }
 
 func (s Service) Generate(ctx context.Context, userID string, req GenerateRequest) (GeneratedReport, error) {
-	if req.PeriodType != "weekly" && req.PeriodType != "monthly" {
-		return GeneratedReport{}, errors.New("periodType must be weekly or monthly")
+	start, end, period, err := analytics.ResolveRange(req.PeriodType, req.StartDate, req.EndDate)
+	if err != nil {
+		return GeneratedReport{}, err
 	}
-	summary, err := analytics.BuildSummary(ctx, s.db, userID, req.PeriodType)
+	summary, err := analytics.NewService(s.db, nil).BuildSummary(ctx, userID, period, start, end, false)
 	if err != nil {
 		return GeneratedReport{}, err
 	}
 	report := models.ProgressReport{
 		ID:          uuid.NewString(),
 		UserID:      userID,
-		PeriodType:  req.PeriodType,
+		PeriodType:  period,
 		GeneratedAt: time.Now(),
 		Summary:     BuildNarrativeSummary(summary),
 		FileURL:     "",
