@@ -1,0 +1,35 @@
+@startuml
+title Iterative and Incremental Development Methodology
+
+skinparam backgroundColor white
+skinparam activity {
+  BackgroundColor #F7F9FC
+  BorderColor #344054
+  FontColor #101828
+  DiamondBackgroundColor #EAF2FF
+  DiamondBorderColor #175CD3
+}
+
+start
+:Review project brief, assessment rubric,\nliterature, and supervisor feedback;
+
+while (More prioritised requirements?) is (Yes)
+  :Define and prioritise module requirements;
+  :Design architecture, database model,\nAPI contracts, and interface flows;
+  :Implement a small functional increment;
+  :Run unit, build, API, and workflow checks;
+
+  while (Requirements and behaviour acceptable?) is (No)
+    :Revise requirement, design,\nor implementation;
+    :Reimplement the functional increment;
+    :Repeat relevant verification checks;
+  endwhile (Yes)
+
+  :Integrate increment into the\nworking full-stack system;
+endwhile (No)
+
+:Evaluate objectives, limitations,\nand implementation evidence;
+:Prepare report, presentation,\nand demonstration;
+
+stop
+@enduml
