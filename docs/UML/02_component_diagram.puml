@@ -1,66 +1,80 @@
 @startuml
+top to bottom direction
 title Component Diagram: System Architecture
 
 skinparam backgroundColor white
 skinparam shadowing false
-skinparam roundcorner 12
 skinparam componentStyle rectangle
 skinparam packageStyle rectangle
 
-package "Frontend Layer" {
-  [Web Dashboard] as Frontend
+package "Client Layer" {
+  [React and TypeScript\nWeb Application] as Frontend
 }
 
-package "Backend API Layer (Go)" {
-  [Authentication Module] as Auth
-  [Workout Module] as Workout
-  [Nutrition Module] as Nutrition
-  [Calorie & Progress Module] as Calorie
-  [Goal Management Module] as Goal
-  [AI Recommendation Module] as Rec
-  [Reporting Module] as Report
+package "Go REST API" {
+  [Gin Router, CORS,\nJWT and Role Middleware] as Gateway
+
+  package "Domain Modules" {
+    [Authentication\nand Profile] as Auth
+    [Workout] as Workout
+    [Nutrition] as Nutrition
+    [Body] as Body
+    [Goal] as Goal
+    [Administration] as Admin
+  }
+
   [Analytics Service] as Analytics
+  [Recommendation Service] as Recommendation
+  [Report Service] as Report
+  [GORM Repositories] as Repositories
+  [Redis Session, Cache,\nand Rate-Limit Support] as Cache
 }
 
-package "Data Layer" {
-  database "MySQL Database" as DB
-  collections "Redis Cache / Session" as Redis
+package "Persistence and Infrastructure" {
+  database "MySQL 8.4" as MySQL
+  collections "Redis 7.4" as Redis
+  folder "Generated HTML Reports" as Files
 }
 
-package "External Service Layer" {
-  [LLM / AI API] as LLM
+package "Recommendation Provider" {
+  [Mock Provider\n(Default)] as Mock
+  [OpenAI-Compatible Provider\n(Optional)] as External
 }
 
-Frontend --> Auth : Register / Login
-Frontend --> Workout : Workout requests
-Frontend --> Nutrition : Nutrition requests
-Frontend --> Calorie : Progress requests
-Frontend --> Goal : Goal requests
-Frontend --> Rec : Recommendation requests
-Frontend --> Report : Dashboard / report requests
+Frontend --> Gateway : REST/JSON
+Gateway --> Auth
+Gateway --> Workout
+Gateway --> Nutrition
+Gateway --> Body
+Gateway --> Goal
+Gateway --> Admin
+Gateway --> Analytics
+Gateway --> Recommendation
+Gateway --> Report
 
-Auth --> DB
-Workout --> DB
-Nutrition --> DB
-Calorie --> DB
-Goal --> DB
-Report --> DB
-Analytics --> DB
+Auth --> Repositories
+Workout --> Repositories
+Nutrition --> Repositories
+Body --> Repositories
+Goal --> Repositories
+Admin --> Repositories
+Analytics --> Repositories
+Recommendation --> Repositories
+Report --> Repositories
+Repositories --> MySQL
 
-Auth --> Redis : Session / token cache
-Report --> Redis : Cache summaries
-Analytics --> Redis : Cache indicators
+Auth --> Cache : session state
+Workout --> Cache : invalidate summary
+Nutrition --> Cache : invalidate summary
+Body --> Cache : invalidate summary
+Goal --> Cache : invalidate summary
+Analytics --> Cache : weekly cache
+Recommendation --> Cache : rate limit
+Cache --> Redis
 
-Workout --> Analytics : Workout indicators
-Nutrition --> Analytics : Nutrition indicators
-Calorie --> Analytics : Calorie indicators
-Goal --> Analytics : Adherence indicators
-
-Rec --> Analytics : Structured user context
-Rec --> LLM : Prompt / completion
-Report --> LLM : AI-generated summary
-
-Report --> Analytics : Comparative metrics
-Calorie --> Analytics
-Goal --> Analytics
+Recommendation --> Analytics : weekly indicators
+Recommendation --> Mock : default
+Recommendation ..> External : configurable
+Report --> Analytics : requested-period indicators
+Report --> Files : write/download HTML
 @enduml

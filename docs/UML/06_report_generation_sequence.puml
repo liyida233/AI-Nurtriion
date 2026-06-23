@@ -1,49 +1,46 @@
 @startuml
-title Sequence Diagram: Weekly / Monthly Progress Report Generation
+title Sequence Diagram: Progress Report Generation and Download
 
 skinparam backgroundColor white
-skinparam sequence {
-    ArrowColor #333333
-    ActorBorderColor #333333
-    LifeLineBorderColor #777777
-    LifeLineBackgroundColor #FFFFFF
-    ParticipantBorderColor #333333
-    ParticipantBackgroundColor #F8F8F8
-}
 skinparam shadowing false
-skinparam roundcorner 12
 skinparam maxMessageSize 90
 
 actor User
-participant "Web Dashboard" as Frontend
-participant "Backend API" as Backend
+participant "React Web App" as Frontend
+participant "Report Controller" as Controller
+participant "Report Service" as Service
 participant "Analytics Service" as Analytics
-database "MySQL Database" as DB
-participant "AI Summary Service" as AISummary
-participant "LLM / AI API" as LLM
-participant "Report Generator" as ReportGen
+database "MySQL" as DB
+participant "HTML Report Builder" as Builder
+participant "Report File Storage" as Files
 
-User -> Frontend: Request weekly/monthly report
-Frontend -> Backend: GET /api/reports/generate?period=weekly
-Backend -> DB: Retrieve profile, logs,\ngoals, and body records
-DB --> Backend: Raw user data
-Backend -> Analytics: Compute comparative analytics
-Analytics -> Analytics: Calculate workout summary
-Analytics -> Analytics: Calculate nutrition summary
-Analytics -> Analytics: Calculate calorie and weight trends
-Analytics -> Analytics: Calculate goal progress
-Analytics --> Backend: Aggregated indicators
+User -> Frontend: Select daily, weekly,\nmonthly, or custom period
+Frontend -> Controller: POST /api/reports/generate\n(periodType, startDate?, endDate?)
+Controller -> Service: Generate(userId, request)
+Service -> Analytics: Resolve range and build summary
+Analytics -> DB: Query user-owned domain records
+DB --> Analytics: Profile, workout, meal,\nbody, goal and milestone data
+Analytics -> Analytics: Calculate requested-period indicators
+Analytics --> Service: DashboardSummary
+Service -> Service: Build deterministic narrative summary
+Service -> Builder: Build HTML(reportId, metrics, narrative)
+Builder --> Service: HTML document
+Service -> Files: Write {reportId}.html
+Files --> Service: File saved
+Service -> DB: Save report metadata and download URL
+DB --> Service: Saved report
+Service --> Controller: Report metadata and metrics
+Controller --> Frontend: 201 Created
+Frontend --> User: Display report history
 
-Backend -> AISummary: Prepare summary context
-AISummary -> LLM: Request natural-language summary
-LLM --> AISummary: Return AI summary and suggestions
-AISummary --> Backend: Validated summary
-
-Backend -> ReportGen: Build report document
-ReportGen -> ReportGen: Render charts, metrics,\nsummary, and recommendations
-ReportGen --> Backend: PDF/HTML report
-Backend -> DB: Save report metadata
-DB --> Backend: Save success
-Backend --> Frontend: Return report link / preview
-Frontend --> User: Display report and export option
+User -> Frontend: Click Download
+Frontend -> Controller: GET /api/reports/{id}/download
+Controller -> Service: Verify report ownership
+Service -> DB: Retrieve report metadata
+DB --> Service: Owned report
+Service --> Controller: Local HTML path
+Controller -> Files: Read generated HTML file
+Files --> Controller: HTML document
+Controller --> Frontend: Attachment response
+Frontend --> User: Save progress-report-{id}.html
 @enduml

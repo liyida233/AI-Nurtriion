@@ -3,19 +3,20 @@ title Class Diagram: Core Domain Model
 
 skinparam backgroundColor white
 skinparam shadowing false
-skinparam roundcorner 10
 skinparam classAttributeIconSize 0
+skinparam linetype ortho
 
 class User {
-  +userId: UUID
+  +id: UUID
   +name: String
   +email: String
-  +passwordHash: String
+  -passwordHash: String
   +role: String
 }
 
 class UserProfile {
-  +profileId: UUID
+  +id: UUID
+  +userId: UUID
   +age: int
   +gender: String
   +heightCm: double
@@ -25,7 +26,7 @@ class UserProfile {
 }
 
 class Exercise {
-  +exerciseId: UUID
+  +id: UUID
   +name: String
   +category: String
   +muscleGroup: String
@@ -34,49 +35,60 @@ class Exercise {
 }
 
 class WorkoutSession {
-  +sessionId: UUID
+  +id: UUID
+  +userId: UUID
   +workoutDate: Date
   +category: String
   +durationMin: int
-  +notes: String
+  +notes: Text
 }
 
 class WorkoutEntry {
-  +entryId: UUID
+  +id: UUID
+  +sessionId: UUID
+  +exerciseId: UUID
   +sets: int
   +reps: int
   +weightKg: double
   +restSec: int
-  +volume(): double
 }
 
 class FoodItem {
-  +foodItemId: UUID
+  +id: UUID
   +name: String
   +servingSize: String
   +calories: double
   +protein: double
   +carbohydrates: double
   +fat: double
+  +sugar: double
+  +sodium: double
 }
 
 class MealLog {
-  +mealLogId: UUID
+  +id: UUID
+  +userId: UUID
+  +foodItemId: UUID
   +mealType: String
   +quantity: double
   +mealTime: DateTime
-  +totalCalories(): double
+  +totalCalories: double
+  +totalProtein: double
+  +totalCarbs: double
+  +totalFat: double
 }
 
 class BodyRecord {
-  +bodyRecordId: UUID
+  +id: UUID
+  +userId: UUID
   +recordDate: Date
   +weightKg: double
-  +note: String
+  +note: Text
 }
 
 class Goal {
-  +goalId: UUID
+  +id: UUID
+  +userId: UUID
   +goalType: String
   +targetMetric: String
   +targetValue: double
@@ -85,54 +97,71 @@ class Goal {
   +status: String
 }
 
+class GoalMilestone {
+  +id: UUID
+  +goalId: UUID
+  +title: String
+  +targetValue: double
+  +dueDate: Date
+  +completed: boolean
+}
+
 class AnalyticsSnapshot {
-  +snapshotId: UUID
+  +id: UUID
+  +userId: UUID
   +periodType: String
   +startDate: Date
   +endDate: Date
   +workoutConsistency: double
+  +trainingVolume: double
+  +calorieIntake: double
   +calorieBalance: double
   +goalAdherence: double
+  +weightTrend: String
 }
 
 class AIRecommendation {
-  +recommendationId: UUID
+  +id: UUID
+  +userId: UUID
   +type: String
   +promptContext: Text
   +content: Text
-  +createdAt: DateTime
 }
 
 class RecommendationFeedback {
-  +feedbackId: UUID
+  +id: UUID
+  +recommendationId: UUID
   +rating: String
   +suitability: String
-  +comment: String
+  +comment: Text
 }
 
 class ProgressReport {
-  +reportId: UUID
+  +id: UUID
+  +userId: UUID
   +periodType: String
   +generatedAt: DateTime
   +summary: Text
   +fileUrl: String
 }
 
-User "1" -- "1" UserProfile
+User "1" -- "0..1" UserProfile
 User "1" -- "*" WorkoutSession
-WorkoutSession "1" -- "*" WorkoutEntry
+WorkoutSession "1" *-- "*" WorkoutEntry
 Exercise "1" -- "*" WorkoutEntry
 User "1" -- "*" MealLog
 FoodItem "1" -- "*" MealLog
 User "1" -- "*" BodyRecord
 User "1" -- "*" Goal
+Goal "1" *-- "*" GoalMilestone
 User "1" -- "*" AnalyticsSnapshot
 User "1" -- "*" AIRecommendation
-AIRecommendation "1" -- "0..*" RecommendationFeedback
+AIRecommendation "1" *-- "*" RecommendationFeedback
 User "1" -- "*" ProgressReport
+
 AnalyticsSnapshot ..> WorkoutSession : derived from
 AnalyticsSnapshot ..> MealLog : derived from
 AnalyticsSnapshot ..> BodyRecord : derived from
 AnalyticsSnapshot ..> Goal : derived from
-ProgressReport ..> AnalyticsSnapshot : uses
+ProgressReport ..> AnalyticsSnapshot : same analytics model
 @enduml

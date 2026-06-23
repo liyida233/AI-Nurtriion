@@ -1,0 +1,52 @@
+@startuml
+title Interface Navigation Structure
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam componentStyle rectangle
+
+[Registration] as Register
+[Login] as Login
+[Authenticated Application Shell] as Shell
+
+Register --> Login : account created
+Login --> Shell : valid credentials
+
+package "General User Navigation" {
+  [Dashboard] as Dashboard
+  [Profile] as Profile
+  [Workout Journal] as Workout
+  [Nutrition Journal] as Nutrition
+  [Body Progress] as Body
+  [Goals and Milestones] as Goals
+  [Reports] as Reports
+  [AI Recommendations] as AI
+  [Exercise Search] as ExerciseSearch
+  [Food Search] as FoodSearch
+}
+
+package "Administrator Navigation" {
+  [User Role Management] as Users
+  [Exercise Reference Management] as Exercises
+  [Food Reference Management] as Foods
+}
+
+Shell --> Dashboard
+Shell --> Profile
+Shell --> Workout
+Shell --> Nutrition
+Shell --> Body
+Shell --> Goals
+Shell --> Reports
+Shell --> AI
+Shell ..> Users : admin only
+Shell ..> Exercises : admin only
+Shell ..> Foods : admin only
+
+Workout --> ExerciseSearch : select reference
+Nutrition --> FoodSearch : select reference
+Dashboard ..> Workout : aggregated data
+Dashboard ..> Nutrition : aggregated data
+Dashboard ..> Body : aggregated data
+Dashboard ..> Goals : aggregated data
+@enduml

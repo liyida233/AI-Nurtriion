@@ -2,7 +2,7 @@
 
 ## 1.1 Background of Study
 
-Physical activity and balanced nutrition are important components of personal health and general well-being. Regular physical activity can contribute to the prevention and management of non-communicable diseases, while also supporting mental health, sleep quality, cognitive health, and healthy body composition. Nevertheless, the World Health Organization reported that approximately 31% of adults worldwide did not meet the recommended physical activity level in 2022 (World Health Organization [WHO], 2024). This situation highlights the continuing need for practical approaches that encourage individuals to monitor and improve their daily health behaviour.
+Physical activity and balanced nutrition are important components of personal health and general well-being. Regular physical activity can contribute to the prevention and management of non-communicable diseases, while also supporting mental health, sleep quality, cognitive health, and healthy body composition. Nevertheless, the World Health Organization reported that approximately 31% of adults worldwide did not meet the recommended physical activity level in 2022 (World Health Organization [WHO], 2024b). This situation highlights the continuing need for practical approaches that encourage individuals to monitor and improve their daily health behaviour.
 
 The widespread use of smartphones, web applications, wearable devices, and digital health platforms has made personal health data easier to record. Users can track information such as workout frequency, exercise duration, food intake, calorie intake, body weight, and personal goals. Digital tracking tools can support behaviour-change techniques such as self-monitoring, feedback, and goal setting. A systematic review by Ferguson et al. (2022) found that wearable activity trackers can improve physical activity and related health outcomes across clinical and non-clinical populations. Similarly, Tong et al. (2024) reported that mobile technologies have potential to promote physical activity and reduce sedentary behaviour, although the effectiveness of these systems also depends on user engagement and implementation quality.
 
@@ -155,11 +155,3 @@ This report is organised into six chapters.
 **Chapter 5: Technical Implementation** describes the implemented frontend, backend, database, authentication, analytics, recommendation, reporting, administration, integration, and testing components. Real system screenshots and selected implementation evidence are presented in this chapter.
 
 **Chapter 6: Conclusion** summarises the project outcomes, evaluates the achievement of the objectives, identifies current limitations, and proposes future improvements.
-
-## Working References for Chapter 1
-
-Ferguson, T., Olds, T., Curtis, R., Blake, H., Crozier, A. J., Dankiw, K., Dumuid, D., Kasai, D., O'Connor, E., Virgara, R., & Maher, C. (2022). Effectiveness of wearable activity trackers to increase physical activity and improve health: A systematic review of systematic reviews and meta-analyses. *The Lancet Digital Health, 4*(8), e615-e626. https://doi.org/10.1016/S2589-7500(22)00111-X
-
-Tong, H. L., Alnasser, A., Alshahrani, N. Z., Bawaked, R. A., AlAhmed, R., Alsukait, R. F., Rakic, S., Cetinkaya, V., Al-Hazzaa, H. M., & Alqahtani, S. A. (2024). The use of mobile technologies to promote physical activity and reduce sedentary behaviors in the Middle East and North Africa region: Systematic review and meta-analysis. *Journal of Medical Internet Research, 26*, e53651. https://doi.org/10.2196/53651
-
-World Health Organization. (2024, June 26). *Physical activity*. https://www.who.int/news-room/fact-sheets/detail/physical-activity

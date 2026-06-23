@@ -1,83 +1,66 @@
 @startuml
-title Sequence Diagram: AI-Based Personalized Recommendation Workflow
+title Sequence Diagram: Recommendation Generation and Feedback
 
 skinparam backgroundColor white
-skinparam sequence {
-    ArrowColor #333333
-    ActorBorderColor #333333
-    LifeLineBorderColor #777777
-    LifeLineBackgroundColor #FFFFFF
-    ParticipantBorderColor #333333
-    ParticipantBackgroundColor #F8F8F8
-}
 skinparam shadowing false
-skinparam roundcorner 12
 skinparam maxMessageSize 90
 
 actor User
-
-box "Frontend Layer" #F7F7F7
-participant "Web Dashboard" as Frontend
-end box
-
-box "Backend Layer" #F7F7F7
-participant "Backend API\nGo Service" as Backend
+participant "React Web App" as Frontend
+participant "Recommendation Controller" as Controller
+participant "Recommendation Service" as Service
 participant "Analytics Service" as Analytics
-participant "AI Recommendation\nService" as AIService
-participant "Safety Validator" as Validator
-end box
+database "MySQL" as DB
+collections "Redis" as Redis
+participant "Configured Provider\n(Mock by Default)" as Provider
+participant "Safety Validator" as Safety
 
-box "Data Layer" #F7F7F7
-database "MySQL Database" as DB
-participant "Redis Cache" as Redis
-end box
+User -> Frontend: Select recommendation type
+Frontend -> Controller: POST /api/recommendations/generate
+Controller -> Service: Generate(userId, type)
+Service -> Redis: Increment hourly user rate counter
 
-box "External AI Layer" #F7F7F7
-participant "LLM / AI API" as LLM
-end box
+alt Rate limit exceeded
+  Redis --> Service: Count above configured limit
+  Service --> Controller: Rate-limit error
+  Controller --> Frontend: 429 Too Many Requests
+else Request allowed
+  Service -> Analytics: Build weekly summary
+  Analytics -> DB: Query profile, workouts, meals,\nbody records, goals and milestones
+  DB --> Analytics: User-owned records
+  Analytics -> Analytics: Calculate deterministic indicators
+  Analytics --> Service: Structured weekly summary
+  Service -> Service: Store prompt context JSON
+  Service -> Provider: Generate(type, summary)
 
-User -> Frontend: Click "Generate Recommendation"
-Frontend -> Backend: POST /api/recommendations/generate
+  alt Default mock provider
+    Provider -> Provider: Apply deterministic guidance rules
+  else OpenAI-compatible provider configured
+    Provider -> Provider: Build constrained prompt\nand request completion
+  end
 
-Backend -> Redis: Check cached analytics summary
+  Provider --> Service: Recommendation content
+  Service -> Safety: Check general-wellness boundaries
 
-alt Cached summary available
-    Redis --> Backend: Return cached indicators
-else Cached summary unavailable
-    Backend -> DB: Retrieve profile and historical logs
-    DB --> Backend: Profile, workout, meal, body, goal data
-
-    Backend -> Analytics: Analyze user data
-    Analytics -> Analytics: Calculate workout indicators
-    Analytics -> Analytics: Calculate nutrition indicators
-    Analytics -> Analytics: Calculate calorie balance
-    Analytics -> Analytics: Calculate goal adherence
-    Analytics -> Analytics: Detect trends and gaps
-    Analytics --> Backend: Return analytical indicators
-
-    Backend -> Redis: Store summary for reuse
+  alt Content rejected
+    Safety --> Service: Unsafe
+    Service --> Controller: Validation error
+    Controller --> Frontend: 422 Unprocessable Entity
+  else Content approved
+    Safety --> Service: Approved
+    Service -> DB: Save recommendation and context
+    DB --> Service: Saved record
+    Service --> Controller: Recommendation
+    Controller --> Frontend: 201 Created
+    Frontend --> User: Display recommendation
+  end
 end
 
-Backend -> AIService: Build structured recommendation context
-AIService -> AIService: Create prompt from user state
-AIService -> LLM: Send structured prompt
-LLM --> AIService: Return plan, suggestions,\nand explanation
-
-AIService -> Validator: Validate recommendation
-Validator -> Validator: Check format and safety boundaries
-Validator --> AIService: Approved recommendation
-
-AIService --> Backend: Return validated recommendation
-Backend -> DB: Save recommendation record
-DB --> Backend: Save success
-
-Backend --> Frontend: Return recommendation result
-Frontend --> User: Display personalized recommendation
-
-User -> Frontend: Submit feedback
-Frontend -> Backend: POST /api/recommendations/{id}/feedback
-Backend -> DB: Save recommendation feedback
-DB --> Backend: Save success
-Backend --> Frontend: Feedback recorded
-
+User -> Frontend: Submit rating and comment
+Frontend -> Controller: POST /api/recommendations/{id}/feedback
+Controller -> Service: Verify ownership and save feedback
+Service -> DB: Read recommendation; insert feedback
+DB --> Service: Saved feedback
+Service --> Controller: Feedback result
+Controller --> Frontend: 201 Created
 @enduml

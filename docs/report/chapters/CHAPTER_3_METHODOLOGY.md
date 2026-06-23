@@ -413,11 +413,3 @@ Requirements were obtained from academic and assessment documents, literature, e
 
 The project combines deterministic analytics with a controlled recommendation-provider workflow. Testing includes selected calculation unit tests, backend compilation, frontend production building, functional API checks, and integrated workflow checks. Formal usability, performance, security, and real-AI evaluation remain future activities. Ethical controls emphasise data minimisation, access control, general-wellness boundaries, recommendation safety, and honest reporting of limitations.
 
-## Working References for Chapter 3
-
-Beck, K., Beedle, M., van Bennekum, A., Cockburn, A., Cunningham, W., Fowler, M., Grenning, J., Highsmith, J., Hunt, A., Jeffries, R., Kern, J., Marick, B., Martin, R. C., Mellor, S., Schwaber, K., Sutherland, J., & Thomas, D. (2001). *Manifesto for Agile Software Development*. https://agilemanifesto.org/
-
-International Organization for Standardization. (2023). *ISO/IEC 25010:2023 systems and software engineering - Systems and software Quality Requirements and Evaluation (SQuaRE) - Product quality model*. https://www.iso.org/standard/78176.html
-
-OWASP Foundation. (n.d.). *OWASP Application Security Verification Standard (ASVS)*. https://owasp.org/www-project-application-security-verification-standard/
-

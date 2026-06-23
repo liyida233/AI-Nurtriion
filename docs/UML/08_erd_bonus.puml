@@ -1,5 +1,5 @@
 @startuml
-title ERD (Bonus, Non-UML): Database Relationship Overview
+title Entity-Relationship Diagram
 
 hide methods
 hide stereotypes
@@ -7,137 +7,170 @@ skinparam backgroundColor white
 skinparam shadowing false
 skinparam linetype ortho
 
-entity User {
-  * user_id : UUID
+entity users {
+  * id : char(36) <<PK>>
   --
-  name : varchar
-  email : varchar
-  role : varchar
+  name : varchar(120)
+  email : varchar(180) <<UQ>>
+  password_hash : varchar(255)
+  role : varchar(40)
 }
 
-entity UserProfile {
-  * profile_id : UUID
+entity user_profiles {
+  * id : char(36) <<PK>>
   --
-  user_id : UUID
+  user_id : char(36) <<FK, UQ>>
   age : int
-  gender : varchar
-  height_cm : decimal
-  weight_kg : decimal
-  activity_level : varchar
-  primary_goal : varchar
+  gender : varchar(40)
+  height_cm : double
+  weight_kg : double
+  activity_level : varchar(60)
+  primary_goal : varchar(80)
 }
 
-entity Exercise {
-  * exercise_id : UUID
+entity exercises {
+  * id : char(36) <<PK>>
   --
-  name : varchar
-  category : varchar
-  muscle_group : varchar
-  equipment : varchar
+  name : varchar(140)
+  category : varchar(80)
+  muscle_group : varchar(80)
+  equipment : varchar(80)
+  intensity_level : varchar(60)
 }
 
-entity WorkoutSession {
-  * session_id : UUID
+entity workout_sessions {
+  * id : char(36) <<PK>>
   --
-  user_id : UUID
-  workout_date : date
-  category : varchar
+  user_id : char(36) <<FK>>
+  workout_date : datetime
+  category : varchar(80)
   duration_min : int
+  notes : text
 }
 
-entity WorkoutEntry {
-  * entry_id : UUID
+entity workout_entries {
+  * id : char(36) <<PK>>
   --
-  session_id : UUID
-  exercise_id : UUID
+  session_id : char(36) <<FK>>
+  exercise_id : char(36) <<FK>>
   sets : int
   reps : int
-  weight_kg : decimal
+  weight_kg : double
+  rest_sec : int
 }
 
-entity FoodItem {
-  * food_item_id : UUID
+entity food_items {
+  * id : char(36) <<PK>>
   --
-  name : varchar
-  calories : decimal
-  protein : decimal
-  carbohydrates : decimal
-  fat : decimal
+  name : varchar(140)
+  serving_size : varchar(80)
+  calories : double
+  protein : double
+  carbohydrates : double
+  fat : double
+  sugar : double
+  sodium : double
 }
 
-entity MealLog {
-  * meal_log_id : UUID
+entity meal_logs {
+  * id : char(36) <<PK>>
   --
-  user_id : UUID
-  food_item_id : UUID
-  meal_type : varchar
-  quantity : decimal
+  user_id : char(36) <<FK>>
+  food_item_id : char(36) <<FK>>
+  meal_type : varchar(60)
+  quantity : double
   meal_time : datetime
+  total_calories : double
+  total_protein : double
+  total_carbs : double
+  total_fat : double
 }
 
-entity BodyRecord {
-  * body_record_id : UUID
+entity body_records {
+  * id : char(36) <<PK>>
   --
-  user_id : UUID
-  record_date : date
-  weight_kg : decimal
+  user_id : char(36) <<FK>>
+  record_date : datetime
+  weight_kg : double
+  note : text
 }
 
-entity Goal {
-  * goal_id : UUID
+entity goals {
+  * id : char(36) <<PK>>
   --
-  user_id : UUID
-  goal_type : varchar
-  target_value : decimal
-  deadline : date
-  status : varchar
+  user_id : char(36) <<FK>>
+  goal_type : varchar(80)
+  target_metric : varchar(80)
+  target_value : double
+  deadline : datetime
+  priority : varchar(40)
+  status : varchar(40)
 }
 
-entity AnalyticsSnapshot {
-  * snapshot_id : UUID
+entity goal_milestones {
+  * id : char(36) <<PK>>
   --
-  user_id : UUID
-  period_type : varchar
-  start_date : date
-  end_date : date
+  goal_id : char(36) <<FK>>
+  title : varchar(140)
+  target_value : double
+  due_date : datetime
+  completed : boolean
 }
 
-entity AIRecommendation {
-  * recommendation_id : UUID
+entity analytics_snapshots {
+  * id : char(36) <<PK>>
   --
-  user_id : UUID
-  type : varchar
+  user_id : char(36) <<FK>>
+  period_type : varchar(40)
+  start_date : datetime
+  end_date : datetime
+  workout_consistency : double
+  training_volume : double
+  calorie_intake : double
+  calorie_balance : double
+  goal_adherence : double
+  weight_trend : varchar(80)
+}
+
+entity ai_recommendations {
+  * id : char(36) <<PK>>
+  --
+  user_id : char(36) <<FK>>
+  type : varchar(60)
+  prompt_context : text
   content : text
-  created_at : datetime
 }
 
-entity RecommendationFeedback {
-  * feedback_id : UUID
+entity recommendation_feedback {
+  * id : char(36) <<PK>>
   --
-  recommendation_id : UUID
-  rating : varchar
+  recommendation_id : char(36) <<FK>>
+  rating : varchar(40)
+  suitability : varchar(80)
   comment : text
 }
 
-entity ProgressReport {
-  * report_id : UUID
+entity progress_reports {
+  * id : char(36) <<PK>>
   --
-  user_id : UUID
-  period_type : varchar
+  user_id : char(36) <<FK>>
+  period_type : varchar(40)
   generated_at : datetime
-  file_url : varchar
+  summary : text
+  file_url : varchar(255)
 }
 
-User ||--|| UserProfile
-User ||--o{ WorkoutSession
-WorkoutSession ||--o{ WorkoutEntry
-Exercise ||--o{ WorkoutEntry
-User ||--o{ MealLog
-FoodItem ||--o{ MealLog
-User ||--o{ BodyRecord
-User ||--o{ Goal
-User ||--o{ AnalyticsSnapshot
-User ||--o{ AIRecommendation
-AIRecommendation ||--o{ RecommendationFeedback
-User ||--o{ ProgressReport
+users ||--o| user_profiles
+users ||--o{ workout_sessions
+workout_sessions ||--o{ workout_entries
+exercises ||--o{ workout_entries
+users ||--o{ meal_logs
+food_items ||--o{ meal_logs
+users ||--o{ body_records
+users ||--o{ goals
+goals ||--o{ goal_milestones
+users ||--o{ analytics_snapshots
+users ||--o{ ai_recommendations
+ai_recommendations ||--o{ recommendation_feedback
+users ||--o{ progress_reports
 @enduml

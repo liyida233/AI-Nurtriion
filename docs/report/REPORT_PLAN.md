@@ -20,30 +20,25 @@
 
 ## UML Asset Inventory
 
-### Suitable after a small consistency review
+The UML directory has been consolidated. All remaining diagrams match the
+current implementation and have corresponding PNG and SVG renders.
 
-- `01_use_case_diagram`
-- `03_class_diagram`
-- `05_ai_recommendation_sequence`
-- `06_report_generation_sequence`
-- `07_goal_state_diagram`
-- `09_user_login_sequence`
-- `10_user_registration_activity`
-- `11_profile_update_sequence`
-- `12_workout_logging_sequence`
-- `13_nutrition_logging_sequence`
-- `14_body_record_sequence`
-- `17_admin_reference_data_sequence`
-- `18_generic_data_recording_activity`
+| Diagram | Main Report Use |
+|---|---|
+| `01_use_case_diagram` | Chapter 4 system use cases |
+| `02_component_diagram` | Chapter 4 system architecture |
+| `03_class_diagram` | Chapter 4 domain model |
+| `05_ai_recommendation_sequence` | Chapter 4 recommendation workflow |
+| `06_report_generation_sequence` | Chapter 4 report workflow |
+| `08_erd_bonus` | Chapter 4 relational database design |
+| `15_goal_management_sequence` | Chapter 4 goal and milestone workflow |
+| `16_dashboard_activity_diagram` | Chapter 4 dashboard analytics workflow |
+| `19_development_methodology` | Chapter 3 development methodology |
+| `20_interface_navigation` | Chapter 4 interface navigation |
 
-### Must be updated before insertion
-
-- `01_use_case_diagram`: fix `UC141`; remove unsupported admin analytics use case or align it with implementation.
-- `02_component_diagram`: remove direct Report-to-LLM flow; align Redis usage and current mock/provider architecture.
-- `03_class_diagram`: add `GoalMilestone` and current nutrition/report fields.
-- `08_erd_bonus`: add `GoalMilestone` and align entity fields with the implemented schema.
-- `15_goal_management_sequence`: show user-defined milestones with default milestone generation as fallback.
-- `16_dashboard_activity_diagram`: support daily, weekly, monthly, and custom date ranges; remove unsupported previous-period comparison.
+Obsolete diagrams were removed after their workflows were replaced or found
+to conflict with the current implementation. The removed diagrams should not
+be used in the report or appendix.
 
 ## Recommended Figures by Chapter
 
@@ -63,7 +58,7 @@
 - Report generation sequence diagram
 - Goal management sequence diagram
 
-The remaining module sequence diagrams may be placed in the appendix to avoid making Chapter 4 unnecessarily long.
+Additional module screenshots and API evidence may be placed in the appendix.
 
 ### Chapter 5: Technical Implementation
 

@@ -4,44 +4,41 @@ title Use Case Diagram: AI-Enhanced Fitness and Nutrition Tracking System
 
 skinparam backgroundColor white
 skinparam shadowing false
-skinparam roundcorner 12
 skinparam packageStyle rectangle
 skinparam usecase {
-  BackgroundColor #F8F8F8
-  BorderColor #333333
-  ArrowColor #333333
-}
-skinparam actor {
-  BorderColor #333333
-  BackgroundColor white
+  BackgroundColor #F8FAFC
+  BorderColor #344054
+  ArrowColor #344054
 }
 
-actor User
-actor Admin
-actor "LLM / AI Service" as AI
+actor "General User" as User
+actor Administrator as Admin
+actor "Configured AI Provider\n(Mock or External)" as AI
 
 rectangle "AI-Enhanced Fitness and Nutrition Tracking System" {
-  usecase "Register / Login" as UC1
-  usecase "Manage Profile" as UC2
-  usecase "Log Workout" as UC3
-  usecase "Log Meal" as UC4
-  usecase "Track Body Record" as UC5
-  usecase "Set / Manage Goal" as UC6
-  usecase "View Dashboard" as UC7
-  usecase "Generate AI Recommendation" as UC8
-  usecase "Generate Progress Report" as UC9
-  usecase "Submit Recommendation Feedback" as UC10
+  package "Account and Tracking" {
+    usecase "Register and Login" as UC1
+    usecase "Manage Profile" as UC2
+    usecase "Manage Workout Journal" as UC3
+    usecase "Manage Nutrition Journal" as UC4
+    usecase "Manage Body Records" as UC5
+    usecase "Manage Goals and Milestones" as UC6
+  }
 
-  usecase "Manage Exercise Database" as UC11
-  usecase "Manage Food Database" as UC12
-  usecase "View User Analytics" as UC13
-  usecase "Manage Users / Roles" as UC14
+  package "Decision Support" {
+    usecase "View Date-Range Dashboard" as UC7
+    usecase "Generate Recommendation" as UC8
+    usecase "Submit Recommendation Feedback" as UC9
+    usecase "Generate and Download\nProgress Report" as UC10
+    usecase "Analyse User Data" as UC11
+    usecase "Generate Provider Output" as UC12
+  }
 
-  usecase "Analyze Workout Data" as UC15
-  usecase "Analyze Nutrition Data" as UC16
-  usecase "Analyze Calorie Balance" as UC17
-  usecase "Evaluate Goal Progress" as UC18
-  usecase "Generate AI Output" as UC19
+  package "Administration" {
+    usecase "Manage Users and Roles" as UC13
+    usecase "Manage Exercise References" as UC14
+    usecase "Manage Food References" as UC15
+  }
 }
 
 User --> UC1
@@ -55,21 +52,18 @@ User --> UC8
 User --> UC9
 User --> UC10
 
-Admin --> UC11
-Admin --> UC12
+UC7 .> UC11 : <<include>>
+UC8 .> UC11 : <<include>>
+UC8 .> UC12 : <<include>>
+UC10 .> UC11 : <<include>>
+
+AI --> UC12
 Admin --> UC13
-Admin --> UC141
-Admin --> UC7
+Admin --> UC14
+Admin --> UC15
 
-UC8 .> UC15 : <<include>>
-UC8 .> UC16 : <<include>>
-UC8 .> UC17 : <<include>>
-UC8 .> UC18 : <<include>>
-UC8 .> UC19 : <<include>>
-UC9 .> UC15 : <<include>>
-UC9 .> UC16 : <<include>>
-UC9 .> UC17 : <<include>>
-UC9 .> UC18 : <<include>>
-
-AI --> UC19
+note bottom of Admin
+  Administrators may also use
+  general-user functions.
+end note
 @enduml

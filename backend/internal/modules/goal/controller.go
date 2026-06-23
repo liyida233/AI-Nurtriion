@@ -3,6 +3,7 @@ package goal
 import (
 	"errors"
 	"net/http"
+	"strings"
 
 	"ai-nutrition/backend/internal/httpctx"
 	"github.com/gin-gonic/gin"
@@ -128,6 +129,8 @@ func respond(ctx *gin.Context, data any, err error) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			status = http.StatusNotFound
 			message = "resource not found"
+		} else if isValidationError(message) {
+			status = http.StatusUnprocessableEntity
 		}
 		httpctx.Error(ctx, status, message)
 		return
@@ -141,4 +144,21 @@ func respondCreated(ctx *gin.Context, data any, err error) {
 		return
 	}
 	httpctx.Created(ctx, data)
+}
+
+func isValidationError(message string) bool {
+	prefixes := []string{
+		"deadline must be",
+		"goal deadline should",
+		"weight loss target appears",
+		"workout frequency target should",
+		"milestone dueDate must be",
+		"status must be",
+	}
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(message, prefix) {
+			return true
+		}
+	}
+	return false
 }

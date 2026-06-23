@@ -1,29 +1,33 @@
 @startuml
-title Activity Diagram: Dashboard Data Aggregation Workflow
+title Activity Diagram: Dashboard Analytics Workflow
 
 skinparam backgroundColor white
 skinparam shadowing false
-skinparam roundcorner 12
 
 start
-:User opens dashboard;
-:Backend receives dashboard request;
-:Check Redis for cached summary;
+:User selects daily, weekly,\nmonthly, or custom period;
+:Frontend requests /api/dashboard/summary;
+:Backend validates and resolves date range;
 
-if (Cached dashboard summary available?) then (Yes)
-  :Return cached dashboard indicators;
+if (Weekly request and valid cache exists?) then (Yes)
+  :Read DashboardSummary from Redis;
 else (No)
-  :Retrieve profile, workouts,\nmeal logs, body records, and goals;
-  :Aggregate workout frequency\nand training volume;
-  :Aggregate calorie intake,\nmacro ratio, and nutrition gaps;
-  :Calculate BMR, TDEE,\nand calorie balance;
-  :Calculate body weight moving average\nand progress trend;
-  :Calculate goal adherence\nand milestone status;
-  :Compare current week/month\nagainst previous period;
-  :Store dashboard summary in Redis;
+  :Retrieve user profile, workouts, meals,\nbody records, goals, and milestones;
+  :Calculate workout consistency,\nvolume, progressive load,\nand muscle-group distribution;
+  :Calculate calories, macro grams,\nmacro ratios, nutrition gaps,\nand meal-quality score;
+  :Calculate BMR, estimated TDEE,\ncalorie balance, weight trend,\nand seven-day average;
+  :Calculate active goals,\nmilestones, and goal adherence;
+
+  if (Persist requested?) then (Yes)
+    :Save selected summary fields\nas AnalyticsSnapshot;
+  endif
+
+  if (Period is weekly?) then (Yes)
+    :Cache summary in Redis for five minutes;
+  endif
 endif
 
-:Render dashboard cards and charts;
-:Display key insights to user;
+:Return DashboardSummary JSON;
+:Render cards, distributions,\nwarnings, and selected-period values;
 stop
 @enduml
